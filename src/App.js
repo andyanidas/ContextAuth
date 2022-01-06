@@ -4,13 +4,17 @@ import React, { useState, useEffect } from "react";
 import Login from "./component/Login";
 import LogOut from "./component/LogOut";
 import { useUser } from "./component/UserContext";
+import reportWebVitals from "./reportWebVitals";
+
 function App() {
   const [username, setUserName] = useState();
   const [password, setPassword] = useState();
 
+  //custom hookeesee share hiisen zuilsee gargaj avch baina
   const [user, setUser] = useUser();
+
   function setToken(userToken) {
-    sessionStorage.setItem("token", JSON.stringify(userToken));
+    if (userToken) localStorage.setItem("token", JSON.stringify(userToken));
   }
   useEffect(() => {
     if (getToken()) {
@@ -19,7 +23,7 @@ function App() {
   }, []);
 
   function getToken() {
-    const tokenString = sessionStorage.getItem("token");
+    const tokenString = localStorage.getItem("token");
     const userToken = JSON.parse(tokenString);
 
     return userToken;
@@ -35,10 +39,31 @@ function App() {
     })
       .then((response) => response.json())
       .then((data) => {
-        setToken(data.token);
+        if (data.token) {
+          setToken(data.token);
+          setUser({ username: username, password: password });
+        } else {
+          alert("failed to optain login");
+        }
       })
-
       .catch((e) => {
+        alert(e);
+        console.log(e);
+      });
+  };
+  const registerUser = async (credentials) => {
+    return fetch("http://52.221.191.153/admin/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(credentials),
+    })
+      .then((response) => {
+        response.json();
+      })
+      .catch((e) => {
+        alert(e);
         console.log(e);
       });
   };
@@ -48,15 +73,22 @@ function App() {
     const token = await loginUser({
       email: username,
       password: password,
-      // name: "asd",
-      // email: "asd",
-      // address: "asd",
     });
-    setUser({ username: username, password: password });
+  };
+  const registerHandler = async (event) => {
+    event.preventDefault();
+    const token = await registerUser({
+      email: username,
+      password: password,
+      name: "asd",
+      // email: "asd",
+      address: "asd",
+    });
   };
   return (
     <div className="App">
       <form onSubmit={submitHandler}>
+        <h1>Login Form</h1>
         <label>
           <p>Username</p>
           <input type="text" onChange={(e) => setUserName(e.target.value)} />
@@ -71,17 +103,33 @@ function App() {
         <div>
           <button type="submit">Submit</button>
         </div>
-        <div></div>
       </form>
       <button
         onClick={() => {
-          console.log("clearing season storage");
-          sessionStorage.clear();
+          localStorage.clear();
         }}
       >
         Log Out
       </button>
       {user?.username ? <Login /> : <LogOut />}
+
+      <form onSubmit={registerHandler}>
+        <h1>Register Form</h1>
+        <label>
+          <p>Username</p>
+          <input type="text" onChange={(e) => setUserName(e.target.value)} />
+        </label>
+        <label>
+          <p>Password</p>
+          <input
+            type="password"
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </label>
+        <div>
+          <button type="submit">Submit</button>
+        </div>
+      </form>
     </div>
   );
 }

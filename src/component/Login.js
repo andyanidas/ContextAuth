@@ -1,15 +1,14 @@
 import React from "react";
 import { useUser } from "./UserContext";
+import style from "../css/style.css";
 
 export default function Login() {
-  const [user, setUser] = useUser();
   const logOutHandler = () => {
-    console.log("clearing season storage");
-    sessionStorage.clear();
-    setUser(undefined);
+    console.log("clearing local storage");
+    localStorage.clear();
   };
   return (
-    <div>
+    <div class="login">
       <h1>Logged in</h1>
       <button onClick={logOutHandler}>Log Out</button>
     </div>
